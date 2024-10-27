@@ -1,18 +1,10 @@
-function emailMe(Recipient,Subject,Message,Attachments)
+function sendEmail(Recipient,Subject,Message,Attachments)
 
 
 Recipient=ValidOptionCheck(Recipient);
 switch Recipient
-    case 'Peter'
-        Address='7409753451@pm.sprint.com';
-    case 'Chris'
-        Address='9255196651@vzwpix.com';
-    case 'Andrew'
-        Address='8645066544@vzwpix.com';
-    case 'Ian'
-        Address='5703912799@mms.att.net';
-    case 'Brant RamGuzzler'
-        Address='5082467191@tmomail.net';
+    case 'hope'
+        Address='hope.whitelock@colorado.edu';
     otherwise 
         error('Invalid Recipient');
 end
