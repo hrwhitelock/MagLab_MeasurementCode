@@ -5,17 +5,18 @@ function spotCheckKappa()
     
     % make the plots we normally do from data
     figure(); 
-    subplot(3,3,1);
+    % set(groot, 'fontsize', 16)
+    subplot(3,2,1);
     plot(datacell.Time,datacell.hotTemp-datacell.coldTemp,'-c.'); grid on; box on;
 
     ylabel('temp'); xlabel('Time [s]'); title('delta t');
 
-    subplot(3,3,2);
+    subplot(3,2,2);
     plot(datacell.Time,datacell.bathTemp,'-m.'); grid on; box on;
     ylabel('Temp [K]'); xlabel('Time [s]'); title('bath');
 
     % plots for K2000 (voltage across heater)
-    subplot(3,3,3);
+    subplot(3,2,3);
     hold on;
     yyaxis left;
     plot(datacell.Time, datacell.heaterVoltage,'-c.'); grid on; box on;
@@ -30,7 +31,7 @@ function spotCheckKappa()
     hold off;
 
     % power through heater
-    subplot(3,3,4);
+    subplot(3,2,4);
     hold on; 
     plot(datacell.Time,datacell.hotTemp,'-c.', 'DisplayName', 'hot temp'); grid on; box on;
 
@@ -43,7 +44,7 @@ function spotCheckKappa()
     yyaxis left
     hold off; 
     % power through heater
-    subplot(3,3,5);
+    subplot(3,2,5);
     hold on; 
     plot(datacell.Time,datacell.coldTemp,'-m.', 'DisplayName', 'cold temp'); grid on; box on;
 %         legend()
