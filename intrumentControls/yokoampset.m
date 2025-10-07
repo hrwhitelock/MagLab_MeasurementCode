@@ -12,7 +12,7 @@ end
 
 fopen(obj1);
 fprintf(obj1,'SOURce:FUNCtion CURRent'); 
-fprintf(obj1,['SOURce:RANGe ' sprintf('%0.9f',current*1e-3)]); 
+% fprintf(obj1,['SOURce:RANGe ' sprintf('%0.9f',current*1e-3)]); 
 fprintf(obj1,['SOURce:LEVel ' sprintf('%0.9f',current*1e-3)]); %Sets current to i
 fclose(obj1); 
 
