@@ -84,7 +84,7 @@ while notAtField
             offcounter = offcounter+1; 
         end
     end
-    if offcounter == 11 % take ten cycles after field reaches final val
+    if offcounter == 3 % take ten cycles after field reaches final val
         yokoampset(heater_current,DAQ.Yoko_gpib);
         notAtField = false;
         yokoOff(DAQ.Yoko_gpib); 
