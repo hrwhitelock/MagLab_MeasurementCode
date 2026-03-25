@@ -1,20 +1,29 @@
-function kappaTswp(DAQ, currentArr,tempArr, targetTemp, ramprate, stepWidth, htrrange)
-% hope sept 2024
+function kappaTswpHall_SCM7(DAQ, targetTemp, ramprate, stepWidth)
+% hope aug 2025
 % extra time is in minutes
 
 % currentArr should be passed in to calculate the current based on
 % temperature. tempArr is for the same thing and should be same length
 %
+
+% % exp setup : 
+% 3 lakeshore 370 with scanner box
+% 2 keithley 2182a - one for hall, one for heater voltage
+% 1 yokogawa gs210 for current source
+
+
+currentArr = DAQ.currDataArr; 
+tempArr = DAQ.TdataArr;
 saveCounter = 0; 
 notAtTemp = true; 
 vi = DAQ.vi; 
 
-scm2LS = OpenGPIBObject(DAQ.SCM2_ls);
-bath =OpenGPIBObject(DAQ.gpib_ls370_3_Bath);
+bath =OpenGPIBObject(DAQ.gpib_ls370_3_Bath); %
 hot =OpenGPIBObject(DAQ.gpib_ls370_1_Hot);
 cold =OpenGPIBObject(DAQ.gpib_ls370_2_Cold);
 
-heaterVoltage = OpenGPIBObject(DAQ.heaterVoltage_gpib); 
+heaterVoltage = OpenGPIBObject(DAQ.heaterVoltage_gpib);
+hallVoltage = OpenGPIBObject(DAQ.hallVoltage_gpib);
 
 YGS200_gpib = DAQ.Yoko_gpib;
 YGS200_obj = OpenMultipleGPIBObjects(YGS200_gpib, 0);
@@ -56,44 +65,14 @@ offcounter = 1;
 setCounter = 1; 
 while notAtTemp
     %% check current temperature
-    fprintf(scm2LS, 'KRDG?C');
-    datacell.ChanC(ii) = fscanf(scm2LS, '%f');
-    fprintf(scm2LS, 'KRDG?D');
-    datacell.ChanD(ii) = fscanf(scm2LS, '%f');
-    currentTemp = datacell.ChanD(ii);
-    if ii ==3
-        set_lake336(DAQ.SCM2_ls,DAQ.TempControlLoop,targetTemp,htrrange, ramprate);
-        set_lake336(DAQ.SCM2_ls,DAQ.TailControlLoop,targetTemp*.8,htrrange, ramprate);
+    currentTemp = DAQ.vi.GetControlValue('Tppms');
+    if oncounter ==2
+        vi.SetControlValue('set T',targetTemp);
+        vi.SetControlValue('menu',4);
+        vi.SetControlValue('rate T',ramprate);
+        vi.SetControlValue('menu',5);
     end
     
-    % determine heater range and set temp initial
-%     if ii ==3
-%         if (currentTemp <= DAQ.lowHtrTemp )
-%             htrrange = 1;
-%             set_lake336(DAQ.SCM2_ls,DAQ.TempControlLoop,targetTemp,htrrange, ramprate);
-%         elseif (currentTemp > DAQ.lowHtrTemp) && (currentTemp <= DAQ.medHtrTemp) 
-%             htrrange = 2;
-%             set_lake336(DAQ.SCM2_ls,DAQ.TempControlLoop,targetTemp,htrrange, ramprate);
-%         elseif (currentTemp > DAQ.medHtrTemp) 
-%             htrrange = 3;
-%             set_lake336(DAQ.SCM2_ls,DAQ.TempControlLoop,targetTemp,htrrange, ramprate);
-%         else
-%         end
-%     end
-%     % check if heater range is correct and reset
-%     if ii > 10 && mod(ii, 400) == 0 % check the heater range
-%         if (currentTemp <= DAQ.lowHtrTemp ) && htrrange ~= 1
-%             htrrange = 1;
-%             set_lake336(DAQ.SCM2_ls,DAQ.TempControlLoop,targetTemp,htrrange, ramprate);
-%         elseif (currentTemp > DAQ.lowHtrTemp) && (currentTemp <= DAQ.medHtrTemp) && htrrange ~= 2
-%             htrrange = 2;
-%             set_lake336(DAQ.SCM2_ls,DAQ.TempControlLoop,targetTemp,htrrange, ramprate);
-%         elseif (currentTemp > DAQ.medHtrTemp) && htrrange ~= 3
-%             htrrange = 3;
-%             set_lake336(DAQ.SCM2_ls,DAQ.TempControlLoop,targetTemp,htrrange, ramprate);
-%         else
-%         end
-%     end
    %% time stamp for current cycle
     checktime = toc(changetime); 
     %% measure everything
@@ -108,7 +87,9 @@ while notAtTemp
     datacell.hotRes(ii) = LS372_Read_Obj(hot); 
     datacell.hotTemp(ii) = DAQ.CXcell{1}(datacell.hotRes(ii));
     datacell.heaterVoltage(ii) = read2182aVoltage(heaterVoltage); 
+    datacell.hallVoltage(ii) = read2182aVoltage(heaterVoltage);
     datacell.current(ii) = heater_current; 
+    datacell.PPMSTemp(ii) = currentTemp; 
     
     %% check where we are in cycle
     if ((checktime - stepWidth) <0) && setCounter == 1 % less than stepwidth should be neg
@@ -136,12 +117,12 @@ while notAtTemp
         end
     end
     %% check and turn off if at end
-    if offcounter > 10 % take ten cycles after field reaches final val
+    if offcounter > 3 % take ten cycles after field reaches final val
         notAtTemp = false;
         yokoOff(DAQ.Yoko_gpib); 
     end 
     %% do plotting
-    if mod(ii, 400) == 0
+    if mod(ii, 4000) == 0
         save(fname,'-STRUCT','datacell');
 %         %% do v quick plot --> commented out for speeeeed
 %         subplot(3,2,1);
@@ -199,8 +180,8 @@ while notAtTemp
 %         plot(datacell.Time, datacell.field, '-b.'); grid on; box on; 
 %         ylabel('field'); xlabel('time (s)'); title('field'); 
 %     	yyaxis right; 
-%         plot(datacell.Time, datacell.ChanD, '--g');
-%         ylabel('probe temp'); 
+%         plot(datacell.Time, datacell.PPMSTemp, '--g');
+%         ylabel('PPMS temp'); 
 %         drawnow;
     end
     %% clear variable when it gets too big
@@ -217,11 +198,9 @@ end
 
 save(fname,'-STRUCT','datacell');
 
-msg = '\fontsize{25}Tswp finished'; 
-
-popup = msgbox(msg, "done", "error"); % uses built in ! icon (usually res for errors) to get my attention at maglab 
+% msg = '\fontsize{25}Bswp finished'; 
+% popup = msgbox(msg, "done"); % uses built in ! icon (usually res for errors) to get my attention at maglab 
 fclose(YGS200_obj);
-fclose(scm2LS) ;
 fclose(bath);
 fclose(cold) ;
 fclose(hot) ;

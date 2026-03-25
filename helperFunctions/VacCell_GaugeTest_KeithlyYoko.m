@@ -12,8 +12,8 @@ h2=figure('Name',filename);
 
 % GPIB Initialization
 
-%NanoVol1 = Open2182a(gpib_K2182);
-NanoVol1 = OpenGPIBObject(gpib_K2182);
+NanoVol1 = Open2182a(gpib_K2182);
+% NanoVol1 = OpenGPIBObject(gpib_K2182);
 
 yokoampset(0,gpib_yoko)
 BathChannel='A';
@@ -51,8 +51,8 @@ while i<=MaxPoints && ishandle(msghandle)
     %     datacell.BathRes(i)=read340(gpib_ls331,BathChannel,R_unit);
 %     datacell.HeaterVoltage(i)=read2400justvolt(gpib_K2400);
     datacell.HeaterVoltage(i) = setcurrent;
-%     datacell.TC_Volt(i)=readonevoltage(NanoVol1);
-    datacell.TC_Volt(i) = read2002_volt_IanObj(NanoVol1);
+    datacell.TC_Volt(i)=readonevoltage(NanoVol1);
+%     datacell.TC_Volt(i) = read2002_volt_IanObj(NanoVol1);
     % Calculation
     datacell.HeaterRes(i)=datacell.HeaterVoltage(i)./datacell.HeaterCurrent;
     %     datacell.BathTemp(i)=BathCal_0010C(datacell.BathRes(i));
@@ -67,11 +67,11 @@ while i<=MaxPoints && ishandle(msghandle)
     end
     
     i=i+1
-    save([fileroot,filename],'-STRUCT','datacell');
+    save([filename],'-STRUCT','datacell');
 end
 yokoampset(0,gpib_yoko);
 yoko_off(gpib_yoko);
-save([fileroot,filename],'-STRUCT','datacell');
+save([filename],'-STRUCT','datacell');
 
 display(filename)
 VacCellTimeConst(filename,1)
