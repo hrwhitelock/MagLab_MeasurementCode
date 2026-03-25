@@ -217,8 +217,9 @@ end
 
 save(fname,'-STRUCT','datacell');
 
-% msg = '\fontsize{25}Bswp finished'; 
-% popup = msgbox(msg, "done"); % uses built in ! icon (usually res for errors) to get my attention at maglab 
+msg = '\fontsize{25}Tswp finished'; 
+
+popup = msgbox(msg, "done", "error"); % uses built in ! icon (usually res for errors) to get my attention at maglab 
 fclose(YGS200_obj);
 fclose(scm2LS) ;
 fclose(bath);
